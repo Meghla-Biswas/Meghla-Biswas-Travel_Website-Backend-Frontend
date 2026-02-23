@@ -1,0 +1,1130 @@
+<?php
+session_start();
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "travel_db"; // Apnar toiri kora database-er nam
+
+// $conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli("localhost", "root", "", "travel_db");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if(isset($_POST['contact_submit'])){
+    $name  = mysqli_real_escape_string($conn, $_POST['c_name']);
+    $email = mysqli_real_escape_string($conn, $_POST['c_email']);
+    $phone = mysqli_real_escape_string($conn, $_POST['c_phone']);
+    $msg   = mysqli_real_escape_string($conn, $_POST['c_message']);
+    
+    $date  = mysqli_real_escape_string($conn, $_POST['c_date']); 
+
+
+    $sql = "INSERT INTO contact_us (name, email, phone, message, date) VALUES ('$name', '$email', '$phone', '$msg', '$date')";
+    
+    if($conn->query($sql)){
+        echo "<script>alert('Message Sent Successfully!'); window.location.href='index.php';</script>";
+    } else {
+        echo "Error: " . $conn->error;
+    }
+}
+
+if(isset($_POST['register_submit'])){
+    $name = mysqli_real_escape_string($conn, $_POST['r_name']);
+    $email = mysqli_real_escape_string($conn, $_POST['r_email']);
+    $password = password_hash($_POST['r_password'], PASSWORD_DEFAULT);
+
+    $checkEmail = "SELECT * FROM users WHERE email='$email'";
+    $result = $conn->query($checkEmail);
+
+    if($result->num_rows > 0){
+        echo "<script>alert('Email already exists!'); window.location.href='register.php';</script>";
+    } else {
+      
+        $sql = "INSERT INTO users (name, email, password) VALUES ('$name', '$email', '$password')";
+        if($conn->query($sql)){
+            echo "<script>alert('Registration Successful! Please Login.'); window.location.href='index.php';</script>";
+        } else {
+          
+            echo "Error: " . $conn->error; 
+        }
+    }
+}
+if(isset($_POST['login_submit'])){
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM users WHERE email='$email'";
+    $result = $conn->query($sql);
+
+    if($result->num_rows > 0){
+        $user = $result->fetch_assoc();
+        if(password_verify($password, $user['password'])){
+            // Login successful hole session-e data rakha
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_name'] = $user['name'];
+            
+            echo "<script>alert('Login Successful!'); window.location.href='index.php';</script>";
+        } else {
+            echo "<script>alert('Invalid Password!');</script>";
+        }
+    } else {
+        echo "<script>alert('No user found!');</script>";
+    }
+}
+
+// if(isset($_POST['login_submit'])){
+//     $email = mysqli_real_escape_string($conn, $_POST['email']);
+//     $password = $_POST['password'];
+
+//     $sql = "SELECT * FROM users WHERE email='$email'";
+//     $result = $conn->query($sql);
+
+//     if($result->num_rows > 0){
+//         $user = $result->fetch_assoc();
+//         if(password_verify($password, $user['password'])){
+//             echo "<script>alert('Login Successful!');</script>";
+        
+//         } else {
+//             echo "<script>alert('Invalid Password!');</script>";
+//         }
+//     } else {
+//         echo "<script>alert('No user found with this email!');</script>";
+//     }
+// }
+
+// if(isset($_POST['register_submit'])){
+//     $name = mysqli_real_escape_string($conn, $_POST['r_name']);
+//     $email = mysqli_real_escape_string($conn, $_POST['r_email']);
+//     $password = mysqli_real_escape_string($conn, $_POST['r_password']); 
+
+//     $checkEmail = "SELECT * FROM users WHERE email='$email'";
+//     $result = $conn->query($checkEmail);
+
+//     if($result->num_rows > 0){
+//         echo "<script>alert('Email already exists!'); window.location.href='register.php';</script>";
+//     } else {
+//         $sql = "INSERT INTO users (name, email, password) VALUES ('$name', '$email', '$password')";
+//         if($conn->query($sql)){
+//             echo "<script>alert('Registration Successful!'); window.location.href='index.php';</script>";
+//         } else {
+//             echo "Error: " . $conn->error;
+//         }
+//     }
+// }
+
+// if(isset($_POST['login_submit'])){
+//     $email = mysqli_real_escape_string($conn, $_POST['email']);
+//     $password = mysqli_real_escape_string($conn, $_POST['password']);
+
+
+//     $sql = "SELECT * FROM users WHERE email='$email' AND password='$password'";
+//     $result = $conn->query($sql);
+
+//     if($result->num_rows > 0){
+//         echo "<script>alert('Login Successful!'); window.location.href='index.php';</script>";
+//     } else {
+//         echo "<script>alert('Invalid Email or Password!');</script>";
+//     }
+// }
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Website</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/style2.css">
+  <link rel="stylesheet" href="css/blog.css">
+  <link rel="stylesheet" href="css/contact.css">
+  <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/res.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div id="menuBar" class="fas fa-bars"></div>
+    <div class="logo">
+      <h4>
+        <span class="gradient-letter">T</span>rip
+        <br>
+        <span class="gradient-letter">M</span>ate
+      </h4>
+      <a href="#"><i class="fa-solid fa-plane-departure"></i></a>
+    </div>
+
+    <div class="icons">
+      <a href="#home">Home</a>
+      <a href="#des">Destination</a>
+      <a href="#packages">Packages</a>
+      <a href="#services">Services</a>
+      <a href="#offers">Special Offers</a>
+      <a href="#booking">Booking</a>
+      <a href="#blog">Travel Blog</a>
+      <a href="#review">Review</a>
+      <a href="#contact">Contact</a>
+    </div>
+
+    <div class="nav-right">
+      <a href="#"><i class="fa-solid fa-user" id="login-btn"></i></a>
+      <a href="#"><i class="fa-solid fa-magnifying-glass search-icon" id="searchToggle"></i></a>
+    </div>
+  </nav>
+<div class="search-bar" id="searchForm">
+    <input type="text" placeholder="search destination here..." name="search">
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="login-form">
+    <form action="" method="POST">
+        <i class="fas fa-times" id="form-close"></i>
+        <h3>Login</h3>
+        <input type="email" name="email" class="box" placeholder="Enter your email" required>
+        <input type="password" name="password" class="box" placeholder="Enter your password" required>
+        <input type="submit" name="login_submit" value="login-now" class="btn">
+        <br>
+        <input type="checkbox" id="remember">
+        <label for="remember">Remember me</label>
+        <p>Forget password? <a href="#">click here</a></p>
+       <p>Don't have any account? <a href="register.php">register now</a></p>
+    </form>
+</div>
+
+<div class="register-form" id="registerForm" style="display:none;">
+    <form action="" method="POST">
+        <i class="fas fa-times" id="reg-close"></i>
+        <h3>Register</h3>
+        <input type="text" name="r_name" class="box" placeholder="Enter your name" required>
+        <input type="email" name="r_email" class="box" placeholder="Enter your email" required>
+        <input type="password" name="r_password" class="box" placeholder="Enter your password" required>
+        <input type="submit" name="register_submit" value="Register Now" class="btn">
+        <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+    </form>
+</div>
+
+  <!-- <div class="search-bar" id="searchForm">
+    <input type="text" placeholder="search destination here..." name="search">
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="login-form"> -->
+
+    <!-- <form action="" >
+      <i class="fas fa-times" id="form-close"></i>
+      </br>
+      <h3>Login</h3>
+      <input type="email" class="box" placeholder="Enter your email">
+      <input type="password" class="box" placeholder="Enter your password">
+      <input type="submit" value="login-now" class="btn"> -->
+      <!-- <form action="" method="POST">
+  <i class="fas fa-times" id="form-close"></i>
+  <h3>Login</h3>
+  <input type="email" name="email" class="box" placeholder="Enter your email" required>
+  <input type="password" name="password" class="box" placeholder="Enter your password" required>
+  <input type="submit" name="login_submit" value="login-now" class="btn">
+      <input type="checkbox" id="remember">
+      <label for="remember">Remember me</label>
+      <p>Forget password? <a href="#">click here</a></p>
+    <p>Don't have any account? <a href="#" id="show-reg">register now</a></p>
+
+
+
+    </form>
+  </div>
+  <div class="register-form" id="registerForm" style="display:none;">
+    <form action="" method="POST">
+        <i class="fas fa-times" id="reg-close"></i>
+        <h3>Register</h3>
+        <input type="text" name="r_name" class="box" placeholder="Enter your name" required>
+        <input type="email" name="r_email" class="box" placeholder="Enter your email" required>
+        <input type="password" name="r_password" class="box" placeholder="Enter your password" required>
+        <input type="submit" name="register_submit" value="Register Now" class="btn">
+        <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+    </form>
+</div> -->
+
+
+  <section class="Home" id="home">
+
+    <div class="content">
+      <p>Lets travel the world with us</p>
+
+      <h3>Create memories, not just trips</h3>
+      <a href="#" class="btn">Explore Now</a>
+    </div>
+    <div class="controls">
+      <span class="vidBtn active" data-src="images/train.mp4"></span>
+      <span class="vidBtn" data-src="images/sunset.mp4"></span>
+      <span class="vidBtn" data-src="images/traffic.mp4"></span>
+    </div>
+    <div class="Video-Container">
+      <video src="images/sunset.mp4" id="video-slider" loop autoplay muted></video>
+    </div>
+  </section>
+  <section class="destination" id="des" >
+    <h1 class="heading">
+      <span>D</span>
+      <span>E</span>
+      <span>S</span>
+      <span>T</span>
+      <span>I</span>
+      <span>N</span>
+      <span>A</span>
+      <span>T</span>
+      <span>I</span>
+      <span>O</span>
+      <span>N</span>
+    </h1>
+    <div class="box-container">
+      <div class="box">
+        <div class="slider">
+          <img src="images/saintmertain.jpg" alt="pic">
+          <img src="images/view-from-chandranath.jpg" alt="pic">
+          <img src="images/ahsan-monjil.jpg" alt="pic">
+                <img src="images/dhaka.jpg" alt="pic">
+        </div>
+        <div class="content">
+          <h3>Bangladesh</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+
+      </div>
+
+      <div class="box">
+        <div class="slider">
+          <img src="images/bali.jpeg" alt="">
+          <img src="images/-Bali-SM.jpg" alt="">
+          <img src="images/balidestination_avif.avif" alt="">
+                 <img src="images/indonesia-bali-best-beaches-jimbaran-bay.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>Bali</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/thailandjpg.jpg" alt="">
+          <img src="images/thai.jpg" alt="">
+          <img src="images/thailan.pg.jpg" alt="">
+                    <img src="images/thailandddd.jpg" alt="">
+        </div>
+
+
+        <div class="content">
+          <h3>Thailand</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="slider">
+          <img src="images/swit,jpg.avif" alt="">
+          <img src="images/swiz.jpg" alt="">
+          <img src="images/swww.jpg" alt="">
+          <img src="images/Alps-Switzerland.jpg" alt="">
+          
+        </div>
+
+        <div class="content">
+          <h3>Switzerland</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/taj-mahal.jpg" alt="">
+          <img src="images/howrah-bridge.jpg" alt="">
+          <img src="images/delhi.jpg" alt="">
+             <img src="images/premium_photo.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>Taj Mahal</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/the-london-jpg.jpg" alt="">
+          <img src="images/londonr.jpg" alt="">
+          <img src="images/hyde-park.jpg" alt="">
+             <img src="images/londonnnnnn.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>London</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/Maldives.jpg" alt="">
+          <img src="images/mal.jpg" alt="">
+          <img src="images/Maldives_0f18c48b3e.jpg" alt="">
+          <img src="images/vignette-collectionjpg.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>Maldives</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/Kashmir-valley.jpg" alt="">
+          <img src="images/Shikara-boatse.jpg" alt="">
+          <img src="images/kash.jpg" alt="">
+           <img src="images/kashmir-natural-beauty-thumbnail.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>Kashmir-valley</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+      <div class="box">
+        <div class="slider">
+          <img src="images/nepal.jpg" alt="">
+          <img src="images/nepjpg.jpg" alt="">
+          <img src="images/pokhara.jpg.jpg" alt="">
+             <img src="images/captionnepalll.jpg" alt="">
+        </div>
+
+        <div class="content">
+          <h3>Nepal</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ducimus vitae. Alias nisi ipsa ad
+            architecto, laboriosam facere deleniti quae?</p>
+          <a href="#" class="btn">see more</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="packages" id="packages">
+    <h1 class="heading">
+      <span>P</span><span>A</span><span>C</span><span>K</span><span>A</span><span>G</span><span>E</span><span>S</span>
+    </h1>
+
+    <div class="carousel-container">
+      
+      <button class="nav prev" aria-label="Previous">&lsaquo;</button>
+
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+        
+          <div class="card" data-city="Bangladesh" data-price="90" data-days="4">
+            <img src="images/images/ahsan-monjil.jpg" alt="Dhaka" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Bangladesh</h3>
+              <p>Bangladesh is a land of vibrant culture, resilient spirit, and breathtaking natural beauty — where rivers sing, and the green never fades.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$90.00 <span>$120.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="package-details.php">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="Bali" data-price="95" data-days="5">
+            <img src="images/images/-Bali-SM.jpg" alt="Bali" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i>Bali</h3>
+              <p>Bali is a spiritual paradise where lush jungles, sacred temples, and ocean breezes whisper serenity into every soul.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$95.00 <span>$130.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="India" data-price="100" data-days="6">
+            <img src="images/images/India gate.jpeg" alt="India" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> India</h3>
+              <p>India is a vibrant tapestry of ancient traditions, colorful festivals, and timeless stories woven into every corner of its diverse land.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$100.00 <span>$150.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="Maldives" data-price="110" data-days="4">
+            <img src="images/images/Maldives.jpg" alt="Maldives" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Maldives</h3>
+              <p>The Maldives is a dreamscape of crystal-clear waters and floating villas, where time slows down in turquoise serenity.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star-half-alt"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$110.00 <span>$160.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="Switzerland" data-price="120" data-days="7">
+            <img src="images/images/swiz.jpg" alt="Switzerland" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Switzerland</h3>
+              <p>Switzerland is nature’s masterpiece — where snow-capped peaks, emerald lakes, and tranquil villages paint a scene of pure harmony.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="far fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$120.00 <span>$170.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="card" data-city="Thailand" data-price="120" data-days="7">
+            <img src="images/images/thailandjpg.jpg" alt="Thailand" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Thailand</h3>
+              <p>Thailand is a fusion of golden temples, spicy street food, and warm smiles — a place where adventure meets peace.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="far fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$120.00 <span>$170.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="card" data-city="Nepal" data-price="120" data-days="7">
+            <img src="images/images/nepal.jpg" alt="Nepal" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Nepal</h3>
+              <p>Nepal is the rooftop of the world, where sacred peaks meet soulful silence and every path leads to peace.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="far fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$120.00 <span>$170.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="card" data-city="Paris" data-price="120" data-days="7">
+            <img src="images/images/paris.jpeg" alt="Paris" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Paris</h3>
+              <p>Paris is the heartbeat of romance and art — where every street tells a story and every night sparkles with timeless elegance.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="far fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$120.00 <span>$170.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="Japan" data-price="95" data-days="5">
+            <img src="images/images/japan2.jpeg" alt="Japan" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Japan</h3>
+              <p>Japan is a graceful blend of ancient wisdom and futuristic wonder — where cherry blossoms bloom beside bullet trains.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$95.00 <span>$140.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="London" data-price="105" data-days="6">
+            <img src="images/images/londonr.jpg" alt="London" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> London</h3>
+              <p>London is a city of history and hustle, where royal legacy and modern rhythm blend beneath the ever-changing skies.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star-half-alt"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$105.00 <span>$150.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card" data-city="Rome" data-price="115" data-days="4">
+            <img src="images/images/rome3.jpeg" alt="Rome" />
+            <div class="card-body">
+              <h3><i class="fas fa-map-marker-alt"></i> Rome</h3>
+              <p>Rome is an eternal city of legends, where every stone echoes history and every sunset feels like a Renaissance painting.</p>
+              <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                  class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>
+              <div class="price">$115.00 <span>$160.00</span></div>
+              <div class="card-buttons">
+                <a class="btn overview-btn" href="#">Package Overview</a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="nav next" aria-label="Next">&rsaquo;</button>
+    </div>
+  </section>
+
+  <div class="services" id="services">
+    <h1 class="heading">
+      <span>S</span><span>E</span><span>R</span><span>V</span><span>I</span><span>C</span><span>E</span><span>S</span>
+    </h1>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <img src="images/images/flight.jpeg" alt="Service 1" />
+        <div class="service-body">
+          <h3>Flight Booking</h3>
+          <p>Quick and easy flight booking with best deals worldwide.</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <img src="images/images/hotel.jpeg" alt="Service 2" />
+        <div class="service-body">
+          <h3>Hotel Reservation</h3>
+          <p>Luxury and budget hotels with best offers.</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <img src="images/images/food2.jpeg" alt="Service 3" />
+        <div class="service-body">
+          <h3>Food</h3>
+          <p>Healty and Hyzenic food</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <img src="images/images/car2.jpeg" alt="Service 4" />
+        <div class="service-body">
+          <h3>Car Rentals</h3>
+          <p>Affordable car rental services for your trips.</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <img src="images/images/travel insurance.jpeg" alt="Service 5" />
+        <div class="service-body">
+          <h3>Travel Insurance</h3>
+          <p>Safe and secure travel with insurance plans.</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <img src="images/images/vissa.jpeg" alt="Service 6" />
+        <div class="service-body">
+          <h3>Visa Assistance</h3>
+          <p>Fast and reliable visa processing help.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <section class="offers" id="offers">
+    <h1 class="heading">Our Special <span>Offers</span></h1>
+    <p class="sub-heading">Choose the best deal that suits you</p>
+
+    <div class="offer-details">
+      <div class="offer-left">
+        <div class="box">
+          <i class="fa-solid fa-user-graduate icon"></i>
+          <h3>Student Offers</h3>
+          <p>Special discounts for students on tours and packages. Valid student ID required.</p>
+          <div class="price">Save up to <span>20%</span></div>
+          <a href="#" class="btn">Grab Offer</a>
+        </div>
+      </div>
+
+      <div class="offer-right">
+        <div class="facilities-box">
+          <h3>Facilities You’ll Get:</h3>
+          <ul>
+            <li>📌 20% discount on all trips</li>
+            <li>📌 Free city tour guide</li>
+            <li>📌 Flexible payment options</li>
+            <li>📌 24/7 support for students</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="offer-details">
+      <div class="offer-left">
+        <div class="box">
+          <i class="fa-solid fa-users icon"></i>
+          <h3>Group Discount</h3>
+          <p>Traveling with friends or family? Get exclusive group discounts for 4+ people.</p>
+          <div class="price">Flat <span>25% OFF</span></div>
+          <a href="#" class="btn">Grab Offer</a>
+        </div>
+      </div>
+
+      <div class="offer-right">
+        <div class="facilities-box">
+          <h3>Facilities You’ll Get:</h3>
+          <ul>
+            <li>📌 Extra 25% off for groups of 4+</li>
+            <li>📌 Free dinner on first night</li>
+            <li>📌 Private guide for your group</li>
+            <li>📌 Complimentary group photoshoot</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="offer-details">
+      <div class="offer-left">
+        <div class="box">
+          <i class="fa-solid fa-calendar-days icon"></i>
+          <h3>Sessional Offers</h3>
+          <p>Enjoy seasonal packages during summer, winter & festivals at amazing prices.</p>
+          <div class="price">Up to <span>30% OFF</span></div>
+          <a href="#" class="btn">Grab Offer</a>
+        </div>
+      </div>
+
+      <div class="offer-right">
+        <div class="facilities-box">
+          <h3>Facilities You’ll Get:</h3>
+          <ul>
+            <li>📌 30% discount during festivals</li>
+            <li>📌 Complimentary welcome gift</li>
+            <li>📌 Free local festival passes</li>
+            <li>📌 Extra benefits for early booking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+  </section>
+
+
+
+  <section class="blog" id="blog">
+    <h1 class="heading"> <span>T</span><span>R</span><span>A</span><span>V</span><span>E</span><span>L</span><span>B</span><span>L</span><span>O</span><span>G</span> </h1>
+
+
+    <div class="blog-container">
+
+      
+      <div class="blog-card">
+        <h3>Travel Vlog</h3>
+        <video controls>
+          <source src="image/video_biash apu.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+         <!---finalcode-->
+     
+      <div class="blog-card">
+        <h3>Memories</h3>
+        <p>
+           We explored the beautiful mountains of Australia. The breathtaking views,fastival mood of people
+          local food, and warm hospitality made the trip unforgettable.We enjoyed a lot.
+        </p>
+      </div>
+
+     
+      <div class="blog-card gallery">
+        <h3>Travel Pictures</h3>
+        <div class="gallery-grid">
+          <img src="image/images (1).jpeg" alt="Travel Picture 1">
+          <img src="image/images2.jpeg" alt="Travel Picture 2">
+          <img src="image/images-3.jpeg" alt="Travel Picture 3">
+          <img src="image/images-4.jpeg" alt="Travel Picture 4">
+          <img src="image/images-5.jpeg" alt="Travel Picture 5">
+          <img src="image/image6.jpeg" alt="Travel Picture 6">
+        </div>
+      </div>
+
+     
+      <div class="blog-card">
+        <h3>Memories</h3>
+        <p>
+          Travelling is my passion.Last january we visited Maldip. The breathtaking views,
+          local food, and warm hospitality made the trip unforgettable.
+        </p>
+      </div>
+
+      
+      <div class="blog-card gallery">
+        <h3>Travel Pictures</h3>
+        <div class="gallery-grid">
+          <img src="image/photo-me.jpg" alt="Travel Picture 7">
+          <img src="image/photo_me2-54.jpg" alt="Travel Picture 8">
+          <img src="image/photo_tinni.jpg" alt="Travel Picture 9">
+          <img src="image/photo_10-56-24.jpg" alt="Travel Picture 10">
+          <img src="image/photo_us2.jpg" alt="Travel Picture 11">
+          <img src="image/photo_us-21.jpg" alt="Travel Picture 12">
+
+
+
+        </div>
+      </div>
+
+      
+      <div class="blog-card">
+        <h3>Travel Vlog</h3>
+        <video controls>
+          <source src="image/video_apu25.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+
+<div class="blog-card">
+        <h3>Travel Vlog</h3>
+        <video controls>
+          <source src="image/video_2025-09-01_15-53-46.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+         <!---finalcode-->
+     
+      <div class="blog-card">
+        <h3>Memories</h3>
+        <p>
+          Last summer we explored the beautiful mountains of Nepal. The breathtaking views,
+          local food, and warm hospitality made the trip unforgettable.
+        </p>
+      </div>
+
+     
+      <div class="blog-card gallery">
+        <h3>Travel Pictures</h3>
+        <div class="gallery-grid">
+          <img src="image/tele-1.jpeg" alt="Travel Picture 1">
+          <img src="image/tele5girl.jpeg" alt="Travel Picture 2">
+          <img src="image/tele2.jpeg" alt="Travel Picture 3">
+          <img src="image/images2.jpeg" alt="Travel Picture 4">
+          <img src="image/uuusss.jpg" alt="Travel Picture 5">
+          <img src="image/tele-6 girl.jpeg" alt="Travel Picture 6">
+        </div>
+      </div>
+
+
+
+
+
+    </div>
+  </section>
+
+
+
+
+   
+  <section class="review" id="review"> 
+    <h1 class="heading"> <span>R</span><span>E</span><span>V</span><span>I</span><span>E</span><span>W</span> </h1>
+
+    <div class="swiper review-slider">
+      <div class="swiper-wrapper">
+
+      
+        
+        <div class="swiper-slide box">
+          <img src="image/do.jpeg" alt="pic1">
+          <h3>Badhon</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas, facilis.</p>
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+        </div>
+
+       
+        
+        <div class="swiper-slide box">
+          <img src="image/dooo2.jpeg" alt="pic2">
+          <h3>Meghla</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas, facilis.</p>
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+        </div>
+
+       
+        
+        <div class="swiper-slide box">
+          <img src="image/download.jpeg" alt="pic3">
+          <h3>Tanzila</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas, facilis.</p>
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+        </div>
+
+        
+        <div class="swiper-slide box">
+          <img src="image/photo.jpeg" alt="pic4">
+          <h3>Sadika</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas, facilis.</p>
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+        </div>
+
+
+<div class="swiper-slide box">
+          <img src="image/download.jpeg" alt="pic3">
+          <h3>Tanzila</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas, facilis.</p>
+          <div class="stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="far fa-star"></i>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </section> 
+
+
+
+  
+  <section class="foot">
+    <section class="rating-section">
+      <h2>Give Your Rating</h2>
+      <form id="ratingForm">
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" required placeholder="Enter your name">
+
+        <label>Your Rating:</label>
+        <div class="star-rating">
+          <i class="fa-regular fa-star" data-value="1"></i>
+          <i class="fa-regular fa-star" data-value="2"></i>
+          <i class="fa-regular fa-star" data-value="3"></i>
+          <i class="fa-regular fa-star" data-value="4"></i>
+          <i class="fa-regular fa-star" data-value="5"></i>
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+
+      <div class="rating-summary">
+        <h3>Average Rating: <span id="avgRating">0</span>/5</h3>
+        <p>Total Ratings: <span id="totalRatings">0</span></p>
+      </div>
+    </section> 
+
+
+
+
+   
+
+
+    <!-- <section class="contact" id="contact">
+      <h1 class="heading">
+        <span>C</span><span>O</span><span>N</span><span>T</span><span>A</span><span>C</span><span>T</span><span>-</span><span>U</span><span>S</span>
+      </h1>
+      <div class="row">
+
+        <div class="calendarBox">
+          <label for="appointment">Choose a Date:</label>
+          <input type="date" id="appointment" name="appointment" required>
+        </div>
+
+        
+        <div class="image">
+          <img src="image/WhatsApp Image 2025-08-31 at 14.16.19_ebaff784.jpg" alt="contact">
+        </div>
+            <form id="contactForm" method="POST">
+  <div class="inputBox">
+    <input type="text" name="c_name" placeholder="Name" required>
+    <input type="email" name="c_email" placeholder="Email" required>
+  </div>
+     
+          <div class="inputBox">
+            <input type="tel" name="c_phone" placeholder="Phone" required>
+          </div>
+      
+          <textarea name="c_message" placeholder="Message" cols="30" rows="8" required></textarea>
+  <input type="submit" name="contact_submit" value="Send Message" class="btn">
+        </form>
+
+      </div> -->
+
+      <section class="contact" id="contact">
+  <h1 class="heading">
+    <span>C</span><span>O</span><span>N</span><span>T</span><span>A</span><span>C</span><span>T</span><span>-</span><span>U</span><span>S</span>
+  </h1>
+  <div class="row">
+
+    <div class="image">
+      <img src="image/WhatsApp Image 2025-08-31 at 14.16.19_ebaff784.jpg" alt="contact">
+    </div>
+
+    <form id="contactForm" method="POST">
+      <div class="inputBox">
+        <input type="text" name="c_name" placeholder="Name" required>
+        <input type="email" name="c_email" placeholder="Email" required>
+      </div>
+     
+      <div class="inputBox">
+        <input type="tel" name="c_phone" placeholder="Phone" required>
+        <input type="date" id="appointment" name="c_date" required> 
+      </div>
+  
+      <textarea name="c_message" placeholder="Message" cols="30" rows="8" required></textarea>
+      <input type="submit" name="contact_submit" value="Send Message" class="btn">
+    </form>
+
+  </div>
+</section>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+
+      
+      <div class="map">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3650.769190862703!2d90.41251831536291!3d23.81033198455607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7ab4f51c9a7%3A0x8b7b2a7f0f60f8a4!2sDhaka!5e0!3m2!1sen!2sbd!4v1631185238123!5m2!1sen!2sbd"
+          width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+      </div>
+
+    </section>
+
+  </section>
+
+
+ 
+<footer class="footer">
+  <div class="footer-container">
+
+    <div class="about">
+      <h3>About us</h3>
+      <p>This is the official site of Tripmate. We are always ready to serve you a better and enjoyable tour. Stay with us. Have a nice tour!</p>
+    </div>
+
+    <div class="locations">
+      <h3>Branch locations</h3>
+      <a href="#">Bangladesh</a>
+      <a href="#">USA</a>
+      <a href="#">Japan</a>
+      <a href="#">France</a>
+    </div>
+
+    <div class="links">
+      <h3>Quick links</h3>
+      <a href="#">Home</a>
+      <a href="#">Destination</a>
+      <a href="#">Packages</a>
+      <a href="#">Services</a>
+      <a href="#">Special Offers</a>
+      <a href="#">Travel Blog</a>
+      <a href="#">Review</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <div class="social">
+      <h3>Follow us</h3>
+      <a href="https://facebook.com"><i class="fab fa-facebook"></i> Facebook</a>
+      <a href="https://instagram.com"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="https://twitter.com"><i class="fab fa-twitter"></i> Twitter</a>
+      <a href="https://linkedin.com"><i class="fab fa-linkedin"></i> Linkedin</a>
+    </div>
+
+  </div>
+
+  <p class="credit">Created by <span>@TripMate</span> | All rights reserved!</p>
+</footer>
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="js/Bindex.js"></script>
+  <script src="js/packege.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
+</body>
+
+</html>
