@@ -3,9 +3,9 @@ session_start();
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "travel_db"; // Apnar toiri kora database-er nam
+$dbname = "travel_db"; 
 
-// $conn = new mysqli($servername, $username, $password, $dbname);
+
 $conn = new mysqli("localhost", "root", "", "travel_db");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -60,7 +60,7 @@ if(isset($_POST['login_submit'])){
     if($result->num_rows > 0){
         $user = $result->fetch_assoc();
         if(password_verify($password, $user['password'])){
-            // Login successful hole session-e data rakha
+    
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_name'] = $user['name'];
             
@@ -73,60 +73,7 @@ if(isset($_POST['login_submit'])){
     }
 }
 
-// if(isset($_POST['login_submit'])){
-//     $email = mysqli_real_escape_string($conn, $_POST['email']);
-//     $password = $_POST['password'];
 
-//     $sql = "SELECT * FROM users WHERE email='$email'";
-//     $result = $conn->query($sql);
-
-//     if($result->num_rows > 0){
-//         $user = $result->fetch_assoc();
-//         if(password_verify($password, $user['password'])){
-//             echo "<script>alert('Login Successful!');</script>";
-        
-//         } else {
-//             echo "<script>alert('Invalid Password!');</script>";
-//         }
-//     } else {
-//         echo "<script>alert('No user found with this email!');</script>";
-//     }
-// }
-
-// if(isset($_POST['register_submit'])){
-//     $name = mysqli_real_escape_string($conn, $_POST['r_name']);
-//     $email = mysqli_real_escape_string($conn, $_POST['r_email']);
-//     $password = mysqli_real_escape_string($conn, $_POST['r_password']); 
-
-//     $checkEmail = "SELECT * FROM users WHERE email='$email'";
-//     $result = $conn->query($checkEmail);
-
-//     if($result->num_rows > 0){
-//         echo "<script>alert('Email already exists!'); window.location.href='register.php';</script>";
-//     } else {
-//         $sql = "INSERT INTO users (name, email, password) VALUES ('$name', '$email', '$password')";
-//         if($conn->query($sql)){
-//             echo "<script>alert('Registration Successful!'); window.location.href='index.php';</script>";
-//         } else {
-//             echo "Error: " . $conn->error;
-//         }
-//     }
-// }
-
-// if(isset($_POST['login_submit'])){
-//     $email = mysqli_real_escape_string($conn, $_POST['email']);
-//     $password = mysqli_real_escape_string($conn, $_POST['password']);
-
-
-//     $sql = "SELECT * FROM users WHERE email='$email' AND password='$password'";
-//     $result = $conn->query($sql);
-
-//     if($result->num_rows > 0){
-//         echo "<script>alert('Login Successful!'); window.location.href='index.php';</script>";
-//     } else {
-//         echo "<script>alert('Invalid Email or Password!');</script>";
-//     }
-// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -211,47 +158,7 @@ if(isset($_POST['login_submit'])){
     </form>
 </div>
 
-  <!-- <div class="search-bar" id="searchForm">
-    <input type="text" placeholder="search destination here..." name="search">
-  </div>
-
-  <div class="overlay" id="overlay"></div>
-  <div class="login-form"> -->
-
-    <!-- <form action="" >
-      <i class="fas fa-times" id="form-close"></i>
-      </br>
-      <h3>Login</h3>
-      <input type="email" class="box" placeholder="Enter your email">
-      <input type="password" class="box" placeholder="Enter your password">
-      <input type="submit" value="login-now" class="btn"> -->
-      <!-- <form action="" method="POST">
-  <i class="fas fa-times" id="form-close"></i>
-  <h3>Login</h3>
-  <input type="email" name="email" class="box" placeholder="Enter your email" required>
-  <input type="password" name="password" class="box" placeholder="Enter your password" required>
-  <input type="submit" name="login_submit" value="login-now" class="btn">
-      <input type="checkbox" id="remember">
-      <label for="remember">Remember me</label>
-      <p>Forget password? <a href="#">click here</a></p>
-    <p>Don't have any account? <a href="#" id="show-reg">register now</a></p>
-
-
-
-    </form>
-  </div>
-  <div class="register-form" id="registerForm" style="display:none;">
-    <form action="" method="POST">
-        <i class="fas fa-times" id="reg-close"></i>
-        <h3>Register</h3>
-        <input type="text" name="r_name" class="box" placeholder="Enter your name" required>
-        <input type="email" name="r_email" class="box" placeholder="Enter your email" required>
-        <input type="password" name="r_password" class="box" placeholder="Enter your password" required>
-        <input type="submit" name="register_submit" value="Register Now" class="btn">
-        <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
-    </form>
-</div> -->
-
+  
 
   <section class="Home" id="home">
 
@@ -782,7 +689,7 @@ if(isset($_POST['login_submit'])){
           Your browser does not support the video tag.
         </video>
       </div>
-         <!---finalcode-->
+         
      
       <div class="blog-card">
         <h3>Memories</h3>
@@ -999,36 +906,7 @@ if(isset($_POST['login_submit'])){
    
 
 
-    <!-- <section class="contact" id="contact">
-      <h1 class="heading">
-        <span>C</span><span>O</span><span>N</span><span>T</span><span>A</span><span>C</span><span>T</span><span>-</span><span>U</span><span>S</span>
-      </h1>
-      <div class="row">
-
-        <div class="calendarBox">
-          <label for="appointment">Choose a Date:</label>
-          <input type="date" id="appointment" name="appointment" required>
-        </div>
-
-        
-        <div class="image">
-          <img src="image/WhatsApp Image 2025-08-31 at 14.16.19_ebaff784.jpg" alt="contact">
-        </div>
-            <form id="contactForm" method="POST">
-  <div class="inputBox">
-    <input type="text" name="c_name" placeholder="Name" required>
-    <input type="email" name="c_email" placeholder="Email" required>
-  </div>
-     
-          <div class="inputBox">
-            <input type="tel" name="c_phone" placeholder="Phone" required>
-          </div>
-      
-          <textarea name="c_message" placeholder="Message" cols="30" rows="8" required></textarea>
-  <input type="submit" name="contact_submit" value="Send Message" class="btn">
-        </form>
-
-      </div> -->
+    
 
       <section class="contact" id="contact">
   <h1 class="heading">

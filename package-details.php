@@ -1,6 +1,6 @@
 <?php
 
-session_start(); // একদম প্রথম লাইনে এটি থাকতে হবে
+session_start(); 
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -12,27 +12,26 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// ইউজার লগইন করা আছে কি না চেক করা
 $is_logged_in = isset($_SESSION['user_email']);
 
-// ডাটাবেসে সেভ করার লজিক
+
 if (isset($_POST['submit_booking'])) {
     
-    // ইমেইল নির্ধারণ: লগইন থাকলে সেশন থেকে নেবে, না থাকলে ফর্ম থেকে নেবে
+  
     if ($is_logged_in) {
         $email = $_SESSION['user_email'];
-        $can_proceed = true; // লগইন থাকলে সরাসরি বুকিং করা যাবে
+        $can_proceed = true; 
     } else {
         $email = mysqli_real_escape_string($conn, $_POST['user_email']);
         $pass = $_POST['user_pass'];
 
-        // লগইন না থাকলে পাসওয়ার্ড চেক করা
+   
         $checkUser = "SELECT * FROM users WHERE email='$email'";
         $result = $conn->query($checkUser);
 
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
-            // পাসওয়ার্ড ভেরিফাই করা
+          
             if (password_verify($pass, $user['password'])) {
                 $can_proceed = true;
             } else {
@@ -46,7 +45,7 @@ if (isset($_POST['submit_booking'])) {
     }
 
     if ($can_proceed) {
-        // ফর্ম থেকে বাকি ডাটা রিসিভ করা
+      
         $city = mysqli_real_escape_string($conn, $_POST['city_name']);
         $date = mysqli_real_escape_string($conn, $_POST['booking_date']);
         $duration = (int)$_POST['duration'];
@@ -54,7 +53,7 @@ if (isset($_POST['submit_booking'])) {
         $room = mysqli_real_escape_string($conn, $_POST['room_type']);
         $cost = (float)$_POST['total_cost'];
 
-        // ডাটাবেসে ইনসার্ট করা
+        
         $sql = "INSERT INTO bookings (user_email, user_pass, city_name, booking_date, duration, num_people, room_type, total_cost) 
                 VALUES ('$email', 'LOGGED_IN_USER', '$city', '$date', '$duration', '$people', '$room', '$cost')";
 
@@ -222,23 +221,7 @@ if (isset($_POST['submit_booking'])) {
 </form>
     </div>
     </div>
-  <!-- id="next-to-confirm" -->
-<!-- <div id="securityModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h3>Confirm Your Information</h3>
-    <p>Are all your details correct?</p>
-    <button class="btn final-ok">Yes, Confirm</button>
-  </div>
-</div> -->
-<!-- <div id="securityModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h3>Confirm Your Information</h3>
-    <p>Are all your details correct?</p>
-    <button type="button" id="final-submit-btn" class="btn final-ok">Yes, Confirm</button>
-  </div>
-</div> -->
+
   
   <div id="congratsModal" class="modal">
     <div class="modal-content">
